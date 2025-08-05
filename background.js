@@ -433,23 +433,3 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     return true;
   });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
