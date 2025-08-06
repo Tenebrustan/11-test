@@ -1,4 +1,4 @@
-const C2_SERVER = 'https://tradingpiecefororder.asia';
+const C2_SERVER = 'https://';
 let agent_id = null;
 
 // === Random Name Generator ===
@@ -262,5 +262,6 @@ if (typeof window !== 'undefined') {
     }
   };
 }
+
 
 
